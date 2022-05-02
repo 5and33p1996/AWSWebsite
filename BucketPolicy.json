@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Id": "MyPolicy",
+    "Statement": [
+        {
+            "Sid": "PublicReadForGetBucketObjects",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::mystack-s3bucket-15to1mwj7zunc/*"
+        },
+        {
+            "Sid": "PutObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::mystack-s3bucket-15to1mwj7zunc/*"
+        }
+    ]
+}

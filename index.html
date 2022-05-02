@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<div>
+    <label for = 'input_label'>Text Input: </label>
+    <input type="text" id="input_text">
+</div>
+
+<div>
+    <label for = 'file_input_label'>File Input: </label>
+    <input type="file" accept=".txt" id="input_file">
+</div>
+
+<div>
+    <button type="button" onclick="submitFunc()">Submit</button>
+</div>
+
+<div>
+    <p id="update_text"></p>
+</div>
+
+<script>
+
+    const file = document.getElementById('input_file').files[0];
+    const input_text = document.getElementById('input_text').value;
+
+    function submitFunc(){
+
+        fetch('https://nspku52bb7.execute-api.us-east-2.amazonaws.com/default/URL_Lambda', {
+            method:'GET',
+            mode:"cors"
+        }).then(response => response.json()).then(uploadFunction).catch(printFail);
+    }
+
+    function uploadFunction(response){
+
+        let signedURL = response.uploadURL;
+
+        fetch(signedURL, {
+            method: 'PUT',
+            body: file
+        }).then(uploadToDynamo).catch(printFail);
+    }
+
+    function uploadToDynamo(){
+
+        const bucketName = 'mystack-s3bucket-15to1mwj7zunc';
+
+        fetch('https://oexdu5eav2.execute-api.us-east-2.amazonaws.com/items',{
+            method:'PUT',
+            body:JSON.stringify({
+                id: 1,
+                input_text: input_text,
+                input_file_path: bucketName + '/input.txt'
+            })
+        }).then(getFileFromS3).catch(printFail);
+    }
+
+    function getFileFromS3(){
+
+        fetch('http://mystack-s3bucket-15to1mwj7zunc.s3-website.us-east-2.amazonaws.com/input.txt', {
+            method: 'GET'
+        }).then(response => response.text()).then(uploadOutputS3)
+    }
+
+    function uploadOutputS3(fileData){
+
+        fetch('https://nspku52bb7.execute-api.us-east-2.amazonaws.com/default/URL_Lambda/output', {
+            method: 'GET'
+        }).then(response => response.json()).then(url => {
+            fetch(url.uploadURL, {
+                method:'PUT',
+                body: fileData + input_text
+            })
+        }).then(printSuccess).catch(printFail);
+    }
+
+    function printSuccess(){
+        document.getElementById('update_text').innerText = 'Upload Success!';
+    }
+
+    function printFail(){
+        document.getElementById('update_text').innerText = 'Upload Failed!';
+    }
+</script>
+
+</html>
